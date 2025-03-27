@@ -1,4 +1,4 @@
-const API_URL = "";
+const API_URL = "https://grocery-backend-8nhl.onrender.com";
 async function loadProducts() {
     let response = await fetch(`${API_URL}/products`);
     let products = await response.json();
