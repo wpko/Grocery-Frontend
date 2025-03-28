@@ -22,7 +22,7 @@ function addToCart(productId) {
         method:"POST",
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({product_id:productId,quantity:perseInt(qty)})
-    }).then()=>loadCart());
+    }).then(()=>loadCart());
 }
 
 async function loadCart() {
