@@ -42,7 +42,7 @@ async function checkout() {
     let result = await response.json();
     let checkoutMessage = document.createElement("div");
     checkoutMessage.innerHTML = `<h3>Checkout Successfully! Total:$${result.total}</h3>`;
-    document.body.appendChild(chekoutMessage);
+    document.body.appendChild(checkoutMessage);
     loadCart();
 }
 
