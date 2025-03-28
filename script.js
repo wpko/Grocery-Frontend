@@ -4,44 +4,66 @@ async function loadProducts() {
     let products = await response.json();
     let productsDiv = document.getElementById("products");
     productsDiv.innerHTML = "";
-    products.forEach(products=> {
-        let div = document.createElement("div");
-        div.className = "product";
-        div.innerHTML = `
-            <h3>${products.name}<h3>
-            <p>Price: $${products.price}<p>
-            <button onclick="addToCart(${products.id})">Add to Cart</button>
+    products.forEach(product => {
+        let productDiv = document.createElement("div");
+        productDiv.innerHTML = `
+            <p>${product.name} - $${product.price}<p>
+            <input type="number" id="qty-${product.id}" value = "1" min = "1">
+            <button onclick="addToCart(${product.id})">Add to Cart</button>
         `;
-        productsDiv.appendChild(div);
+        productsDiv.appendChild(productDiv);
     });
+    renderChart(products);
 }
 
-async function addToCart(productId) {
-    await fetch(`${API_URL}/add-to-cart/${productId}`,{method:"POST"});
-    loadCart();
+function addToCart(productId) {
+    let qty = document.getElementById(`qty-${productId}`).value;
+    fetch(`${API_URL}/cart/add`,{
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({product_id:productId,quantity:perseInt(qty)})
+    }).then()=>loadCart());
 }
 
 async function loadCart() {
     let response = await fetch(`${API_URL}/cart`);
-    let cartData = await response.json();
+    let cart = await response.json();
     let cartDiv = document.getElementById("cart");
     cartDiv.innerHTML="";
-    cartData.cart.forEach(item=>{
-        let div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `<h3>${item.name}</h3><p>$${item.price}</p>`;
-        cartDiv.appendChild(div);
+    cart.forEach(item=>{
+        let itemDiv = document.createElement("div");
+        itemDiv.innerHTML = `${item.name} - ${item.quantity} x $${item.price}`;
+        cartDiv.appendChild(itemDiv);
     });
 }
 
 async function checkout() {
     let response = await fetch(`${API_URL}/checkout`,{method:"POST"});
     let result = await response.json();
-    alert(`Checkout Successful! Total: $${result.total}`);
+    let checkoutMessage = document.createElement("div");
+    checkoutMessage.innerHTML = `<h3>Checkout Successfully! Total:$${result.total}</h3>`;
+    document.body.appendChild(chekoutMessage);
     loadCart();
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
+function renderChart(products){
+    let ctx = document.getElementById("ProductChart").getContext("2d");
+    let productNames = products.map(p=>p.name);
+    let productPrices = products.map(p=>p.price);
+    new Chart(ctx,{
+        type:"bar",
+        data:{
+            labels: productNames,
+            datasets:[{
+                label:"Product Prices",
+                data: productPrices,
+                backgroundcolor:"rgba(54,162,235,0.6)"
+            }]
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded",() => {
     loadProducts();
     loadCart();
 });
