@@ -21,7 +21,7 @@ function addToCart(productId) {
     fetch(`${API_URL}/cart/add`,{
         method:"POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({product_id:productId,quantity:perseInt(qty)})
+        body: JSON.stringify({product_id:productId,quantity:parseInt(qty)})
     }).then(() => loadCart());
 }
 
