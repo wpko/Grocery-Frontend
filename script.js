@@ -1,4 +1,11 @@
+document.addEventListener("DOMContentLoaded",ffunction(){
+    loadProducts();
+    loadCart();
+    renderChart();
+});
+
 const API_URL = "https://grocery-backend-8nhl.onrender.com";
+
 async function loadProducts() {
     let response = await fetch(`${API_URL}/products`);
     let products = await response.json();
@@ -16,40 +23,52 @@ async function loadProducts() {
     renderChart(products);
 }
 
-function addToCart(productId) {
-    let qty = document.getElementById(`qty-${productId}`).value;
-    fetch(`${API_URL}/cart/add`,{
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({product_id:productId,quantity:parseInt(qty)})
-    }).then(() => loadCart());
+function addToCart(id,name,price) {
+    let qty = document.getElementById(`qty-${id}`).value;
+    if (isNaN(qty) || qty <=0){
+        alert("Invalid quantity!");
+        return;
 }
-
-async function loadCart() {
-    let response = await fetch(`${API_URL}/cart`);
-    let cart = await response.json();
-    let cartDiv = document.getElementById("cart");
-    cartDiv.innerHTML="";
-    cart.forEach(item=>{
-        let itemDiv = document.createElement("div");
-        itemDiv.innerHTML = `${item.name} - ${item.quantity} x $${item.price}`;
-        cartDiv.appendChild(itemDiv);
-    });
-}
-
-async function checkout() {
-    let response = await fetch(`${API_URL}/checkout`,{method:"POST"});
-    let result = await response.json();
-    let checkoutMessage = document.createElement("div");
-    checkoutMessage.innerHTML = `<h3>Checkout Successfully! Total:$${result.total}</h3>`;
-    document.body.appendChild(checkoutMessage);
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cart.push({id,name,price,qty});
+    localStorage.setItem("cart",JSON.stringify(cart));
     loadCart();
 }
 
-function renderChart(products){
-    let ctx = document.getElementById("ProductChart").getContext("2d");
-    let productNames = products.map(p=>p.name);
-    let productPrices = products.map(p=>p.price);
+function loadCart() {
+    let cart = JSON.parse(localStorage.getItem("cart"))||[];
+    let cartList = document.getElementById("cartItems");
+    cartList.innerHTML = "";
+    cart.forEach(item=>{
+        let itemDiv = document.createElement("div");
+        itemDiv.innerHTML = `${item.name} x ${item.qty} - $${item.price * item.qty}`;
+        cartList.appendChild(itemDiv);
+    });
+}
+
+function checkout() {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    if(cart.length ===0){
+        alert("Your cart is empty!");
+        return;
+    }
+
+fetch("https://grocery-backend-8nhl.onrender.com/checkout",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(cart)
+}).then(response => response.json()).then(data=>{
+    alert("Checkout Successful:"+JSON.stringify(data));
+    localStorage.removeItem("cart");
+    loadCart();
+}).catch(error => console.error("Checkout error:",error));
+
+function renderChart(){
+    let ctx = document.getElementById("myChart").getContext("2d");
+    if(!ctx){
+        console.error("Canvas element not found!");
+        return;
+    }
     new Chart(ctx,{
         type:"bar",
         data:{
@@ -63,7 +82,3 @@ function renderChart(products){
     });
 }
 
-document.addEventListener("DOMContentLoaded",() => {
-    loadProducts();
-    loadCart();
-});
