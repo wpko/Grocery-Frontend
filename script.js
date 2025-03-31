@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded",ffunction(){
+document.addEventListener("DOMContentLoaded",function(){
     loadProducts();
     loadCart();
     renderChart();
