@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded",function(){
     loadProducts();
     loadCart();
-    renderChart();
 });
 
 const API_URL = "https://grocery-backend-8nhl.onrender.com";
@@ -14,9 +13,9 @@ async function loadProducts() {
     products.forEach(product => {
         let productDiv = document.createElement("div");
         productDiv.innerHTML = `
-            <p>${product.name} - $${product.price}<p>
+            <p>${product.name} - $${product.price}</p>
             <input type="number" id="qty-${product.id}" value = "1" min = "1">
-            <button onclick="addToCart(${product.id})">Add to Cart</button>
+            <button onclick="addToCart(${product.id},'${product.name}',${product.price})">Add to Cart</button>
         `;
         productsDiv.appendChild(productDiv);
     });
@@ -24,7 +23,7 @@ async function loadProducts() {
 }
 
 function addToCart(id,name,price) {
-    let qty = document.getElementById(`qty-${id}`).value;
+    let qty = parseInt(document.getElementById(`qty-${id}`).value);
     if (isNaN(qty) || qty <=0){
         alert("Invalid quantity!");
         return;
@@ -40,8 +39,11 @@ function loadCart() {
     let cartList = document.getElementById("cartItems");
     cartList.innerHTML = "";
     cart.forEach(item=>{
+        let itemName = item.name || "Unknown Item";
+        let itemQty = parseInt(item.qty) || 1;
+        let itemPrice = parseFloat(item.price) || 0;
         let itemDiv = document.createElement("div");
-        itemDiv.innerHTML = `${item.name} x ${item.qty} - $${item.price * item.qty}`;
+        itemDiv.innerHTML = `${itemName} x ${itemQty} - $${itemPrice}`;
         cartList.appendChild(itemDiv);
     });
 }
@@ -52,14 +54,16 @@ function checkout() {
         alert("Your cart is empty!");
         return;
     }
-    fetch("https://grocery-backend-8nhl.onrender.com/checkout", {
+    fetch(`${API_URL}/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cart)
-    }).then(response => response.json()).then(data => {
-        alert("Checkout Successful:" + JSON.stringify(data));
-        localStorage.removeItem("cart");
-        loadCart();
+    })
+        .then(response => response.json())
+        .then(data => {
+            alert(`Checkout Successful!\nMessage: ${data.message}\nTotal: $${data.total||0}`);
+            localStorage.removeItem("cart");
+            loadCart();
     }).catch(error => console.error("Checkout error:", error));
 }
 
