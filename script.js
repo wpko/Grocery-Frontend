@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded",(){
+document.addEventListener("DOMContentLoaded",function(){
     loadProducts();
     loadCart();
     renderChart();
@@ -48,37 +48,40 @@ function loadCart() {
 
 function checkout() {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
-    if(cart.length ===0){
+    if (cart.length === 0) {
         alert("Your cart is empty!");
         return;
     }
+    fetch("https://grocery-backend-8nhl.onrender.com/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cart)
+    }).then(response => response.json()).then(data => {
+        alert("Checkout Successful:" + JSON.stringify(data));
+        localStorage.removeItem("cart");
+        loadCart();
+    }).catch(error => console.error("Checkout error:", error));
+}
 
-fetch("https://grocery-backend-8nhl.onrender.com/checkout",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(cart)
-}).then(response => response.json()).then(data=>{
-    alert("Checkout Successful:"+JSON.stringify(data));
-    localStorage.removeItem("cart");
-    loadCart();
-}).catch(error => console.error("Checkout error:",error));
-
-function renderChart(){
+function renderChart(products) {
     let ctx = document.getElementById("myChart").getContext("2d");
-    if(!ctx){
+    if (!ctx) {
         console.error("Canvas element not found!");
         return;
     }
-    new Chart(ctx,{
-        type:"bar",
-        data:{
+    let productNames = products.map(p => p.name);
+    let productPrices = products.map(p => p.price);
+    new Chart(ctx, {
+        type: "bar",
+        data: {
             labels: productNames,
-            datasets:[{
-                label:"Product Prices",
+            datasets: [{
+                label: "Product Prices",
                 data: productPrices,
-                backgroundcolor:"rgba(54,162,235,0.6)"
+                backgroundColor: "rgba(54,162,235,0.6)"
             }]
         }
     });
 }
+
 
