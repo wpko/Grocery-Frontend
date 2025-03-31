@@ -37,15 +37,19 @@ function addToCart(id,name,price) {
 function loadCart() {
     let cart = JSON.parse(localStorage.getItem("cart"))||[];
     let cartList = document.getElementById("cartItems");
+    let total = 0;
     cartList.innerHTML = "";
     cart.forEach(item=>{
         let itemName = item.name || "Unknown Item";
         let itemQty = parseInt(item.qty) || 1;
         let itemPrice = parseFloat(item.price) || 0;
+        let totalPrice = (itemPrice*itemQty).toFixed(2);
+        total += parseFloat(totalPrice);
         let itemDiv = document.createElement("div");
         itemDiv.innerHTML = `${itemName} x ${itemQty} - $${itemPrice}`;
         cartList.appendChild(itemDiv);
     });
+    document.getElementById("totalAmount").innerText =  `Total: $${total.toFixed(2)}`;
 }
 
 function checkout() {
@@ -61,7 +65,10 @@ function checkout() {
     })
         .then(response => response.json())
         .then(data => {
-            alert(`Checkout Successful!\nMessage: ${data.message}\nTotal: $${data.total||0}`);
+            document.getElementById("checkoutMessage").innerHTML=
+                `<p>Checkout Successful!</p>
+                <p>Message:${data.message}</p>
+                <p>Total:$${data.total || 0}</p>`;
             localStorage.removeItem("cart");
             loadCart();
     }).catch(error => console.error("Checkout error:", error));
